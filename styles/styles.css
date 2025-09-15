@@ -1,0 +1,697 @@
+:root {
+  /* Light */
+  --bg: #fbfbfd;
+  --surface: #ffffff;
+  --surface-2: #f2f2f7;
+  --text: #111114;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --accent: #0071e3;
+
+  --chip-bg: #f2f2f7;
+  --chip-fg: #111114;
+
+  /* card */
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+
+  /* avatar user colors */
+  --user-blue:#0a84ff;
+  --user-green:#34c759;
+  --user-orange:#ff9f0a;
+  --user-pink:#ff375f;
+  --user-purple:#5e5ce6;
+  --user-teal:#30b0c7;
+  --user-yellow:#ffd60a;
+  --user-gray:#8e8e93;
+}
+[data-theme="dark"] {
+  /* Dark */
+  --bg: #0c0c0d;
+  --surface: #111214;
+  --surface-2: #16181a;
+  --text: #f5f7fa;
+  --muted: #9aa3ad;
+  --border: #2a2d33;
+  --accent: #0a84ff;
+
+  --chip-bg: #1d1f22;
+  --chip-fg: #f5f7fa;
+
+  --card-bg: #111214;
+  --card-border: #2a2d33;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
+               Segoe UI, Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden; /* sayfa kaymasın */
+}
+
+/* Top bar */
+.topbar {
+  height: 56px;
+  display: grid;
+  grid-template-columns: 180px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.brand { font-weight: 600; opacity: .9; color: #FF5100; }
+
+/* ====== Tabs (plain text görünüm; buton değil) ====== */
+.tabs { display: inline-flex; gap: 28px; align-items: center; }
+.tab {
+  height: auto; padding: 0; border: none; border-radius: 0;
+  background: transparent; color: var(--muted);
+  font-weight: 500; cursor: pointer;
+}
+.tab:hover { text-decoration: underline; text-underline-offset: 3px; }
+.tab.active { color: var(--accent); font-weight: 700; text-decoration: none; }
+
+.actions { display: inline-flex; align-items: center; gap: 8px; }
+.btn {
+  height: 32px; padding: 0 12px; border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-2); color: var(--text);
+  font-weight: 600; cursor: pointer;
+}
+.btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* Layout */
+.app {
+  height: calc(100vh - 56px);
+  display: grid;
+  grid-template-columns: 1fr; /* sol panel overlay; içerik tek sütun */
+}
+
+/* SOL SAKLI MENÜ (drawer) */
+#leftEdge {
+  position: fixed;
+  left: 0; top: 56px;
+  width: 10px; height: calc(100vh - 56px);
+  z-index: 41; /* aside(40) üstünde, modal(50) altında */
+  background: transparent;
+}
+aside#sidebar {
+  position: fixed;
+  left: 0; top: 56px;
+  height: calc(100vh - 56px);
+  width: 280px;
+  transform: translateX(-270px);
+  transition: transform .18s ease-out;
+  z-index: 40;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  padding: 12px;
+  overflow: hidden; /* tüm ekran kaymasın */
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 8px;
+}
+#leftEdge:hover ~ #sidebar,
+#sidebar:hover { transform: translateX(0); }
+
+/* FİNANS SEKMESİNDE ve ANA SAYFA'DA ÇEKMECE TAMAMEN GİZLİ */
+.drawer-hidden #leftEdge,
+.drawer-hidden #sidebar { display: none !important; }
+
+.side-title { font-weight: 700; opacity: .9; padding: 4px 6px; }
+.calendar-list {
+  overflow: auto; /* sadece liste scroll olsun */
+  padding-right: 4px;
+  display: grid; gap: 6px;
+}
+.cal-item {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  padding: 8px 10px; border-radius: 10px;
+  user-select: none;
+}
+.dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.cal-name { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.cal-item input { accent-color: var(--accent); }
+
+main#main {
+  display: grid;
+  grid-template-rows: 44px 1fr;
+  background: var(--surface);
+}
+
+/* Toolbar */
+.calbar {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.chip {
+  display:inline-flex;align-items:center;gap:8px;
+  height: 32px; padding: 0 12px; border-radius: 16px;
+  background: var(--chip-bg); color: var(--chip-fg);
+  border: 1px solid var(--border);
+  font-weight: 600; cursor: pointer;
+}
+/* Orta başlık */
+.cal-title {
+  text-align: center;
+  font-weight: 800;
+  font-size: 1.05rem;
+  letter-spacing: .2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Calendar area */
+#calendarWrap { height: 100%; width: 100%; overflow: hidden; }
+#scale { transform-origin: top left; width: 100%; height: 100%; }
+#calendar { height: 100%; }
+
+/* FullCalendar ince ayar */
+.fc { --fc-border-color: var(--border); --fc-page-bg-color: var(--surface); }
+.fc-theme-standard .fc-scrollgrid { border-color: var(--border); }
+
+/* ↓↓ GÜN ADLARI & SAYILARI KÜÇÜK ↓↓ */
+.fc-col-header-cell-cushion { padding: 8px 0; font-weight: 700; font-size: .90rem; }
+.fc-daygrid-day-top { padding: 2px 6px; display: flex; justify-content: center; }
+.fc-daygrid-day-number { font-size: .80rem; }
+
+.fc .fc-daygrid-day.fc-day-today { background: inherit; }
+.fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
+  background: var(--accent); color: #fff; border-radius: 9999px;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; line-height: 28px; text-decoration: none;
+}
+.fc-daygrid-event { margin: 1px 2px; }
+.fc-event, .fc-daygrid-block-event { font-size: 12px; line-height: 1.2; border-radius: 8px; padding: 2px 6px; border-width: 0; font-weight: 600; }
+.fc .fc-daygrid-more-link { font-size: 11px; }
+.fc .fc-button-primary { background: var(--chip-bg); border-color: var(--border); color: var(--text); }
+.fc .fc-button-primary:focus, .fc .fc-button-primary:hover { background: var(--surface-2); border-color: var(--border); }
+
+/* Modal (ekleme & bilgi kartı + auth) */
+.modal {
+  position: fixed; inset: 0; display: none; place-items: center;
+  background: rgba(0,0,0,.4); z-index: 50;
+}
+#authModal { background: var(--bg); }
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0,0,0,.35);
+}
+.card-head {
+  padding: 16px; background: var(--surface-2); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px; justify-content: space-between;
+  font-weight: 700;
+}
+.card-body { padding: 16px; display: grid; gap: 12px; }
+.row { display: grid; grid-template-columns: 120px 1fr; align-items: center; gap: 10px; }
+.input, select, .input[type="datetime-local"], .input[type="number"] {
+  width: 100%; height: 36px; border-radius: 8px; padding: 0 10px;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  font: inherit;
+}
+.card-foot { padding: 12px 16px; border-top: 1px solid var(--border); display:flex; gap:8px; justify-content:flex-end; }
+.hidden { display: none !important; }
+
+/* GİRİŞ AŞAMASINDA TAM SAYFAYI GİZLE */
+body.auth-pending .topbar,
+body.auth-pending .app,
+body.auth-pending #finance { display: none !important; }
+body.auth-pending #authModal { display: grid !important; }
+
+.event-title { font-size: 1.2rem; font-weight: 800; }
+.muted { color: var(--muted); }
+
+/* -------- Finans & Ana Sayfa kart stilleri -------- */
+main#finance, main#home {
+  background: var(--surface);
+  border-left:1px solid var(--border);
+  grid-column: 1 / span 1;
+  padding:16px;
+  /* uzun listeler için scroll */
+  height: calc(100vh - 56px);
+  overflow: auto;
+}
+.fin-tabs { display:flex; gap:8px; margin-bottom:12px; position: sticky; top:0; background: var(--surface); padding-bottom:8px; z-index: 1; }
+.fin-pane { display:block; }
+.fin-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap:12px; }
+.fin-card { border-radius:16px; border:1px solid var(--card-border); background: var(--card-bg); overflow:hidden; display:flex; flex-direction:column; }
+.fin-card .head { padding:10px 12px; font-weight:800; background: var(--surface-2); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+.fin-card .body { padding:10px 12px; display:grid; gap:8px; }
+.fin-table { width:100%; border-collapse: collapse; font-size:.9rem; }
+.fin-table th, .fin-table td { border-bottom:1px solid var(--border); padding:6px 8px; text-align:left; }
+.fin-table tfoot td { font-weight:800; }
+.fin-add { height:28px; padding:0 10px; border-radius:8px; border:1px solid var(--border); background: var(--surface-2); font-weight:700; cursor:pointer; }
+.fin-del { height:26px; padding:0 8px; border-radius:8px; border:1px solid var(--border); background: var(--surface-2); cursor:pointer; }
+.pill { border-radius:999px; padding:4px 10px; font-weight:800; }
+.pill.blue { background:#2f6dfd22; }
+.pill.red { background:#ff3b3022; }
+.pill.green { background:#34c75922; }
+
+.fin-3col { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:12px; }
+.stat { border:1px solid var(--border); border-radius:14px; padding:12px; background: var(--surface-2); }
+.stat .v { font-size:1.25rem; font-weight:900; }
+
+.fin-toolbar { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+.fin-toolbar .input, .fin-toolbar select { height:32px; }
+
+/* --- Ana Sayfa düzeni --- */
+.home-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap:12px; }
+
+/* ===================================================== */
+/*        TODO LIST — MINIMAL (daha kompakt sürüm)       */
+/* ===================================================== */
+
+.todo-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 6px;               /* daha sıkı boşluk */
+}
+
+/* Ay başlıkları: daha ince ve kompakt */
+.todo-month {
+  font-weight: 900;
+  opacity: .80;
+  padding: 6px 2px 2px;   /* daha az padding */
+  margin: 10px 0 2px;     /* daha az margin */
+  letter-spacing: .4px;   /* daha az harf aralığı */
+  color: var(--muted);
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+  /* Apple benzeri başlık ailesi */
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Görev kartı: daha az padding ve daha küçük radius */
+.todo-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;               /* içerik boşluğu azaltıldı */
+  padding: 10px 12px;     /* önce: 14px 14px */
+  border-radius: 12px;    /* önce: 14px */
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  line-height: 1.28;      /* önce: 1.35 */
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    border-color 140ms ease,
+    background 140ms ease,
+    opacity 120ms ease;
+  will-change: transform, box-shadow;
+}
+
+/* —— Apple benzeri tipografi SADECE Todo alanında —— */
+.todo-list,
+.todo-item,
+.todo-item .muted,
+.todo-item .fin-add,
+.todo-item .fin-del,
+.todo-item label {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-variant-ligatures: common-ligatures contextual;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1, "ss01" 0;
+}
+
+/* Hover/dokunma hissi: daha sakin */
+.todo-item:hover {
+  transform: translateY(-0.5px);
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+  border-color: color-mix(in oklab, var(--border) 75%, var(--accent));
+}
+.todo-item:active { transform: translateY(0); }
+
+/* Checkbox: daha küçük */
+.todo-item input[type="checkbox"] {
+  width: 16px; height: 16px; margin-top: 2px;
+  accent-color: var(--accent); cursor: pointer;
+}
+
+/* Başlık (ilk iç div) — orijinal */
+.todo-item > div:first-of-type > div:first-child {
+  font-size: 0.92rem;     /* önce: 0.98rem */
+  font-weight: 800;
+  letter-spacing: .15px;
+}
+
+/* Meta satırı (Ekleniş / Son Tarih) — daha ince */
+.todo-item .muted {
+  font-size: .76rem !important; /* önce: .80rem */
+  color: var(--muted);
+  margin-top: 1px;
+}
+
+/* Butonlar (Düzenle / Sil) — daha küçük */
+.todo-item .fin-del,
+.todo-item .fin-add {
+  height: 24px; padding: 0 10px; border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-weight: 700; font-size: .86rem; cursor: pointer;
+}
+.todo-item .fin-del:hover,
+.todo-item .fin-add:hover { background: var(--surface-2); }
+
+/* Tamamlanan görev görünümü */
+.todo-item.completed {
+  background: color-mix(in oklab, var(--surface-2) 92%, black 0%);
+  opacity: .92;
+}
+.todo-item.completed > div:first-of-type > div:first-child {
+  text-decoration: line-through;
+  opacity: .7;
+  font-weight: 700;
+}
+
+/* Düzenleme modu (input/row) daha kompakt */
+.todo-item .row { grid-template-columns: 160px 1fr !important; }
+.todo-item .input[type="date"], .todo-item .input[type="text"] { height: 32px; }
+
+/* Etkinlik listeleri */
+.evt-list { display:grid; gap:6px; }
+.evt-row {
+  display:flex; align-items:center; gap:10px;
+  border:1px solid var(--border);
+  background: var(--surface-2);
+  padding:8px 10px; border-radius:10px;
+}
+.evt-time { font-weight:800; min-width:72px; }
+
+/* ===== Inbox (Gelen Kutuları) – iOS benzeri ===== */
+.inbox-column .inbox-header{font-weight:800;opacity:.9;padding:6px 10px}
+.mailboxes{display:grid;gap:10px;padding:8px;position:sticky;top:0;background:var(--surface);z-index:1}
+.mb-group{display:grid;gap:6px}
+.mb-item{display:grid;grid-template-columns:24px 1fr auto;align-items:center;gap:8px;height:40px;padding:0 10px;border-radius:12px;background:var(--surface-2);border:1px solid var(--border);cursor:pointer;font-weight:700}
+.mb-item.active{border-color:var(--accent);color:var(--accent)}
+.mb-ic{font-size:1.05rem}
+.mb-count{font-variant-numeric:tabular-nums;opacity:.8}
+.inbox-list{padding:8px;display:grid;gap:6px;overflow:auto;max-height:calc(100vh - 260px)}
+.inbox-empty{padding:14px;text-align:center}
+
+.notif-row{display:grid;grid-template-columns:8px 1fr auto;gap:8px;align-items:center;border:1px solid var(--border);background:var(--surface-2);border-radius:12px;padding:8px 10px}
+.notif-dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.notif-row.read .notif-dot{opacity:0}
+.notif-main{overflow:hidden}
+.notif-title{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.notif-preview{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.85rem}
+.notif-meta{display:grid;gap:6px;justify-items:end}
+.notif-time{font-size:.8rem}
+.notif-actions{display:flex;gap:6px;opacity:.7}
+.notif-row:hover .notif-actions{opacity:1}
+.notif-btn{border:1px solid var(--border);background:var(--surface);border-radius:8px;height:26px;padding:0 8px;cursor:pointer}
+.notif-btn:active{transform:translateY(1px)}
+
+@media (max-width: 700px){
+  .mb-item{height:38px}
+  .inbox-list{max-height:calc(100vh - 300px)}
+}
+
+/* ===========================================================
+   2025-08-23 — OVERRIDES (önceki değişiklikler)
+   =========================================================== */
+
+/* Görev metinlerini sadeleştir (bold kapalı, küçük) */
+.todo-item label,
+.todo-item .title,
+.todo-item .task-title,
+.todo-item .task-text,
+.todo-item .name,
+.todo-item .text,
+.todo-item p,
+.todo-item span,
+.todo-item > div:first-of-type > div:first-child {
+  font-weight: 400 !important;
+  font-size: 0.84rem !important; /* ~2 kademe daha küçük */
+  letter-spacing: 0.1px;
+}
+.todo-item strong, .todo-item b { font-weight: 400 !important; }
+.todo-item.completed > div:first-of-type > div:first-child,
+.todo-item.completed label,
+.todo-item.done > div:first-of-type > div:first-child,
+.todo-item.done label { font-weight: 400 !important; }
+
+/* Gelen Kutusu görsel ayrışma */
+.inbox-column {
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 16px;
+  box-shadow: 0 6px 24px rgba(0,0,0,.06);
+  padding: 8px;
+}
+.inbox-column .inbox-header {
+  text-transform: uppercase;
+  letter-spacing: .3px;
+  font-size: .85rem;
+  color: var(--muted);
+  font-weight: 700;
+}
+.inbox-column .notif-row {
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.inbox-column + .task-columns,
+.task-columns + .inbox-column { margin-left: 8px; margin-right: 8px; }
+
+/* ===========================================================
+   2025-08-23 — OVERRIDES v2
+   1) Sütun başlıkları 2 kademe küçük + 1 kademe daha ince
+   2) Kaydet sonrası görev başlığı tekrar bold olmasın (inline style dâhil)
+   3) Gelen Kutusu zeminine accent karışımı renk
+   =========================================================== */
+#home .fin-card .head,
+#home .card .card-head,
+#home .board .col .title,
+#home .column .title,
+#home .task-column .title,
+#home .task-columns .title,
+#home .list-title,
+#home .column-title {
+  font-size: 0.90rem !important;
+  font-weight: 600 !important;
+  letter-spacing: .15px;
+}
+.inbox-column .inbox-header { font-size: .80rem !important; font-weight: 600 !important; letter-spacing: .25px; }
+.todo-item [style*="font-weight"] { font-weight: 400 !important; }
+.todo-item [style*="font-size"]   { font-size: 0.84rem !important; }
+.todo-item .title, .todo-item .task-title, .todo-item .task-text {
+  font-weight: 400 !important; font-size: 0.84rem !important;
+}
+.todo-item strong, .todo-item b, .todo-item em { font-weight: 400 !important; font-style: normal !important; }
+.inbox-column { background: color-mix(in oklab, var(--accent) 7%, var(--surface)) !important; }
+[data-theme="dark"] .inbox-column { background: color-mix(in oklab, var(--accent) 12%, var(--surface)) !important; }
+.inbox-column .notif-row { background: var(--surface-2) !important; border-color: var(--border) !important; }
+.todo-item .bold { font-weight: 400 !important; }
+#home .inbox-column { margin-bottom: 8px; }
+
+/* ===========================================================
+   2025-08-23 — OVERRIDES v3
+   Sekmeler: plain text; Avatarlar: beyaz çerçeveyi kaldır,
+   her kullanıcıya renk; avatar yazısı 1 kademe küçük
+   =========================================================== */
+/* — Avatar temel görünüm (görev içi sağ alt dahil) — */
+.avatar, .task-avatar, .user-avatar, .assignee {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.85rem;           /* 1 boy küçültme */
+  border: none !important;
+  box-shadow: none !important;  /* beyaz halka (outline) yok */
+  outline: none !important;
+  text-transform: uppercase;
+  line-height: 1;
+  letter-spacing: .2px;
+}
+/* Küçük avatar varyantı (varsa) */
+.avatar.sm, .task-avatar.sm, .user-avatar.sm, .assignee.sm {
+  width: 22px; height: 22px; font-size: 0.78rem;
+}
+/* Kullanıcı renk sınıfları */
+.u-blue   { background: var(--user-blue)   !important; color:#fff !important; }
+.u-green  { background: var(--user-green)  !important; color:#fff !important; }
+.u-orange { background: var(--user-orange) !important; color:#fff !important; }
+.u-pink   { background: var(--user-pink)   !important; color:#fff !important; }
+.u-purple { background: var(--user-purple) !important; color:#fff !important; }
+.u-teal   { background: var(--user-teal)   !important; color:#fff !important; }
+.u-yellow { background: var(--user-yellow) !important; color:#111 !important; } /* sarıda koyu metin */
+.u-gray   { background: var(--user-gray)   !important; color:#fff !important; }
+/* Eski beyaz kontur’u zorla kaldırabilecek güvenlik önlemi */
+[class*="avatar"], [class*="assignee"] {
+  box-shadow: none !important;
+  border: none !important;
+  outline: none !important;
+}
+
+/* ===========================================================
+   2025-08-23 — OVERRIDES v4
+   Bu görseldeki TÜM yazılar 2 boy daha küçük.
+   Görev kartı sağ alt avatar: çerçevesiz; kullanıcıya özel renk.
+   =========================================================== */
+
+/* 1) Sütun başlıkları ve inputlar (2 kademe daha küçük) */
+#home .task-columns .title,
+#home .list-title,
+#home .column-title,
+#home .task-column .title {
+  font-size: 0.78rem !important;   /* önce ~0.90rem idi */
+  font-weight: 600 !important;
+}
+#home .task-columns .input,
+#home .task-columns input,
+#home .task-columns textarea,
+#home .task-columns select {
+  font-size: 0.80rem !important;
+}
+
+/* 2) Görev kartı iç metinleri (2 kademe daha küçük, bold kapalı kalır) */
+.todo-item label,
+.todo-item .title,
+.todo-item .task-title,
+.todo-item .task-text,
+.todo-item .name,
+.todo-item .text,
+.todo-item p,
+.todo-item span,
+.todo-item > div:first-of-type > div:first-child {
+  font-size: 0.76rem !important;   /* önce 0.84rem */
+  font-weight: 400 !important;
+}
+.todo-item .muted,
+.inbox-column .notif-preview,
+.inbox-column .notif-time {
+  font-size: 0.70rem !important;
+}
+
+/* 3) Gelen Kutusu iç başlık/metinleri (2 kademe küçük) */
+.inbox-column .inbox-header { font-size: 0.74rem !important; font-weight: 600 !important; }
+.inbox-column .notif-title { font-size: 0.78rem !important; font-weight: 600 !important; }
+
+/* 4) Sağ alttaki küçük avatarlar: çerçeve/outline YOK, renkli */
+.todo-item .avatar,
+.todo-item .task-avatar,
+.todo-item .assignee {
+  width: 24px; height: 24px; font-size: 0.78rem;
+  border: none !important; box-shadow: none !important; outline: none !important;
+}
+
+/* 5) İsim baş harfleri — örnek atamalar (isteğe göre HTML’e eklenebilir)
+   (Ozan Bektaş = OB, İsmail Kol = İK) */
+[data-initials="OB"] { background: var(--user-orange) !important; color:#fff !important; }
+[data-initials="İK"], [data-initials="IK"] { background: var(--user-teal) !important; color:#fff !important; }
+
+/* Genel alternatif: sınıfla renk ver (her kullanıcı farklı renk) */
+/* Örnek: <span class="avatar u-purple" data-initials="OB">OB</span> */
+
+
+/* ===========================================================
+   2025-08-23 — CALENDAR OVERRIDES v2 (yalnızca Takvim sekmesi)
+   • Üst kontroller buton gibi görünmesin (düz metin)
+   • “Ağustos 2025” dâhil tüm yazılar 1 boy küçük & 1 kademe daha ince
+   • Etkinlikler bold olmasın
+   • Başka hiçbir şeyi değiştirme
+   =========================================================== */
+
+/* 1) FullCalendar üst kontrollerinin “buton” görünümünü kaldır */
+.fc .fc-button,
+.fc .fc-button-primary,
+.calbar .btn,
+.calbar .btn.primary,
+.calbar .chip {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  height: auto !important;
+  padding: 0 8px !important;
+  color: var(--muted) !important;
+  font-size: 0.90rem !important;   /* 1 boy daha küçük */
+  font-weight: 500 !important;     /* 1 kademe daha ince */
+  cursor: pointer;
+}
+.fc .fc-button:hover,
+.fc .fc-button-primary:hover,
+.calbar .btn:hover,
+.calbar .chip:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  background: transparent !important;
+}
+.fc .fc-button:focus,
+.fc .fc-button-primary:focus,
+.calbar .btn:focus,
+.calbar .chip:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.fc .fc-button.fc-button-active,
+.fc .fc-button-primary.fc-button-active {
+  color: var(--accent) !important;
+  background: transparent !important;
+  border: none !important;
+  text-decoration: none !important;
+}
+/* Ok ikonlarını metinle hizala */
+.fc .fc-button .fc-icon { font-size: .95em !important; line-height: 1 !important; }
+
+/* 2) Ay başlığı (“Ağustos 2025”) — 1 boy küçük, 1 kademe daha ince */
+.fc .fc-toolbar-title {
+  font-size: 1.00rem !important;
+  font-weight: 600 !important;
+  letter-spacing: .15px;
+}
+
+/* 3) Gün adları ve gün numaraları — 1 boy küçük, 1 kademe daha ince */
+.fc-col-header-cell-cushion {
+  font-size: .84rem !important;    /* önce .90rem */
+  font-weight: 600 !important;     /* önce 700 */
+}
+.fc-daygrid-day-number {
+  font-size: .75rem !important;    /* önce .80rem */
+  font-weight: 600 !important;
+}
+
+/* 4) Etkinlik kartları — bold kapalı ve 1 boy küçük */
+.fc .fc-event,
+.fc .fc-daygrid-block-event,
+.fc .fc-timegrid-event,
+.fc .fc-list-event {
+  font-size: 11px !important;      /* önce ~12px */
+  font-weight: 400 !important;     /* bold kapalı */
+  border-width: 0 !important;
+}
+.fc .fc-event .fc-event-title,
+.fc .fc-event .fc-event-time,
+.fc .fc-list-event-title,
+.fc .fc-list-event-time {
+  font-weight: 400 !important;
+}
+
+/* 5) Bugün’ün gün numarası abartılı kalın olmasın */
+.fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
+  font-weight: 600 !important;
+}

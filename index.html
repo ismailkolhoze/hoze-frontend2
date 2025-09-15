@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <title>Panel — Takvim</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- FullCalendar -->
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+
+  <!-- Sistem fontları (Apple benzeri) -->
+  <link rel="stylesheet" href="styles/styles.css">
+</head>
+<body class="auth-pending">
+  <!-- Üst şerit -->
+  <div class="topbar">
+    <div class="brand">Hoze Project</div>
+    <div class="tabs">
+      <button id="tab-home" class="tab">Ana Sayfa</button>
+      <button id="tab-cal" class="tab active">Takvim</button>
+      <button id="tab-fin" class="tab">Finans</button>
+    </div>
+    <div class="actions">
+      <button id="themeToggle" class="btn" title="Tema değiştir">🌙</button>
+      <button id="loginBtn" class="btn primary">Google Hesabını Bağla</button>
+      <button id="logoutBtn" class="btn hidden">Çıkış</button>
+    </div>
+  </div>
+
+  <!-- Uygulama gövdesi -->
+  <div class="app">
+    <!-- Sol kenar hotzone + drawer (sadece Takvimde) -->
+    <div id="leftEdge"></div>
+    <aside id="sidebar">
+      <div class="side-title">Takvimler</div>
+      <div id="calendarList" class="calendar-list"></div>
+    </aside>
+
+    <!-- ANA SAYFA -->
+    <main id="home" class="hidden">
+      <div class="home-grid">
+        <!-- Yapılacaklar -->
+        <div class="fin-card">
+          <div class="head">Yapılacaklar Listesi</div>
+          <div class="body">
+            <div style="display:flex; gap:8px;">
+              <input id="todoInput" class="input" placeholder="Görev ekle..." />
+              <button id="todoAdd" class="fin-add">Ekle</button>
+            </div>
+            <ul id="todoList" class="todo-list"></ul>
+          </div>
+        </div>
+        <!-- Bugünkü Etkinlikler -->
+        <div class="fin-card">
+          <div class="head">Bugünkü Etkinlikler</div>
+          <div class="body">
+            <div id="todayEventsStatus" class="muted"></div>
+            <div id="todayEvents" class="evt-list"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Takvim ana alan -->
+    <main id="main">
+      <div class="calbar">
+        <div>
+          <button class="chip" id="prevBtn">‹</button>
+          <button class="chip" id="nextBtn">›</button>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="chip" id="todayBtn">Bugün</button>
+          <button class="chip" id="addQuickBtn">Etkinlik Ekle</button>
+        </div>
+        <div id="calTitle" class="cal-title"></div>
+        <div style="display:flex; gap:6px;">
+          <button class="chip" id="btnMonth">Ay</button>
+          <button class="chip" id="btnWeek">Hafta</button>
+          <button class="chip" id="btnDay">Gün</button>
+          <button class="chip" id="btnYear">Yıl</button>
+        </div>
+      </div>
+
+      <div id="calendarWrap">
+        <div id="scale">
+          <div id="calendar"></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- FİNANS -->
+    <main id="finance" class="hidden">
+      <div class="fin-tabs">
+        <button class="chip fin-tab active" data-pane="fin-genel">Genel</button>
+        <button class="chip fin-tab" data-pane="fin-gunluk">Günlük</button>
+        <button class="chip fin-tab" data-pane="fin-etkinlikler">Etkinlikler</button>
+      </div>
+
+      <section id="fin-genel" class="fin-pane">
+        <div class="fin-toolbar">
+          <label style="font-weight:700;opacity:.8">Ay:</label>
+          <select id="finMonth" class="input">
+            <option>Ocak</option><option>Şubat</option><option>Mart</option><option>Nisan</option>
+            <option>Mayıs</option><option>Haziran</option><option selected>Ağustos</option>
+            <option>Temmuz</option><option>Eylül</option><option>Ekim</option><option>Kasım</option><option>Aralık</option>
+          </select>
+        </div>
+
+        <div class="fin-3col" style="margin-bottom:12px;">
+          <div class="stat pill blue">
+            <div style="font-weight:800;opacity:.9;margin-bottom:6px;">TOPLAM GELİR</div>
+            <div class="v" id="sumGelir">0</div>
+          </div>
+          <div class="stat pill red">
+            <div style="font-weight:800;opacity:.9;margin-bottom:6px;">TOPLAM GİDER</div>
+            <div class="v" id="sumGider">0</div>
+          </div>
+          <div class="stat pill green">
+            <div style="font-weight:800;opacity:.9;margin-bottom:6px;">NET KALAN</div>
+            <div class="v" id="sumNet">0</div>
+          </div>
+        </div>
+
+        <div class="fin-grid">
+          <div class="fin-card">
+            <div class="head">Gelir Özeti</div>
+            <div class="body">
+              <table class="fin-table" id="tblGelir">
+                <thead><tr><th>Kalem</th><th style="width:160px">Tutar</th></tr></thead>
+                <tbody>
+                  <tr><td>Toplam Dijital Gelir</td><td><input class="input fin-money" type="number" step="0.01" placeholder="0"/></td></tr>
+                  <tr><td>Hoze Dijital Gelir Net Kalan</td><td><input class="input fin-money" type="number" step="0.01"/></td></tr>
+                  <tr><td>Konser Gelirleri</td><td><input class="input fin-money" type="number" step="0.01"/></td></tr>
+                  <tr><td>Ekstra</td><td><input class="input fin-money" type="number" step="0.01"/></td></tr>
+                </tbody>
+                <tfoot><tr><td>Toplam Gelir</td><td id="totGelir" style="font-weight:800">0</td></tr></tfoot>
+              </table>
+            </div>
+          </div>
+
+          <div class="fin-card">
+            <div class="head">Gider Özeti</div>
+            <div class="body">
+              <table class="fin-table" id="tblGider">
+                <thead><tr><th>Kalem</th><th style="width:160px">Tutar</th></tr></thead>
+                <tbody>
+                  <tr><td>Personel Maaş</td><td><input class="input fin-money" type="number" step="0.01"/></td></tr>
+                  <tr><td>Kira</td><td><input class="input fin-money" type="number" step="0.01"/></td></tr>
+                  <tr><td>Ofis Harcaması</td><td><input class="input fin-money" type="number" step="0.01"/></td></tr>
+                  <tr><td>Multinet</td><td><input class="input fin-money" type="number" step="0.01"/></td></tr>
+                  <tr><td>Prim</td><td><input class="input fin-money" type="number" step="0.01"/></td></tr>
+                  <tr><td>Reklam</td><td><input class="input fin-money" type="number" step="0.01"/></td></tr>
+                  <tr><td>Klip ve Fotoğraf</td><td><input class="input fin-money" type="number" step="0.01"/></td></tr>
+                  <tr><td>Mix, Master ve Aranje</td><td><input class="input fin-money" type="number" step="0.01"/></td></tr>
+                  <tr><td>Ekstra</td><td><input class="input fin-money" type="number" step="0.01"/></td></tr>
+                </tbody>
+                <tfoot><tr><td>Toplam Gider</td><td id="totGider" style="font-weight:800">0</td></tr></tfoot>
+              </table>
+            </div>
+          </div>
+
+          <div class="fin-card">
+            <div class="head">Notlar</div>
+            <div class="body">
+              <textarea class="input" style="height:220px; padding:10px;" placeholder="Bu aya ait kısa notlar..."></textarea>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="fin-gunluk" class="fin-pane hidden">
+        <div class="fin-grid">
+          <div class="fin-card" data-table="ofis">
+            <div class="head"><span>Ofis Harcaması</span><button class="fin-add" data-add>Satır Ekle</button></div>
+            <div class="body">
+              <table class="fin-table">
+                <thead><tr><th style="width:120px">Tarih</th><th style="width:120px">Tutar</th><th>Açıklama</th><th style="width:60px"></th></tr></thead>
+                <tbody></tbody>
+                <tfoot><tr><td colspan="4">Toplam: <b class="sum">0</b></td></tr></tfoot>
+              </table>
+            </div>
+          </div>
+
+          <div class="fin-card" data-table="maas">
+            <div class="head"><span>Personel Maaşı</span><button class="fin-add" data-add>Satır Ekle</button></div>
+            <div class="body">
+              <table class="fin-table">
+                <thead><tr><th style="width:120px">Tarih</th><th style="width:120px">Tutar</th><th>Açıklama</th><th style="width:60px"></th></tr></thead>
+                <tbody></tbody>
+                <tfoot><tr><td colspan="4">Toplam: <b class="sum">0</b></td></tr></tfoot>
+              </table>
+            </div>
+          </div>
+
+          <div class="fin-card" data-table="prim">
+            <div class="head"><span>Prim</span><button class="fin-add" data-add>Satır Ekle</button></div>
+            <div class="body">
+              <table class="fin-table">
+                <thead><tr><th style="width:120px">Tarih</th><th style="width:120px">Tutar</th><th>Açıklama</th><th style="width:60px"></th></tr></thead>
+                <tbody></tbody>
+                <tfoot><tr><td colspan="4">Toplam: <b class="sum">0</b></td></tr></tfoot>
+              </table>
+            </div>
+          </div>
+
+          <div class="fin-card" data-table="reklam">
+            <div class="head"><span>Reklam</span><button class="fin-add" data-add>Satır Ekle</button></div>
+            <div class="body">
+              <table class="fin-table">
+                <thead><tr><th style="width:120px">Tarih</th><th style="width:120px">Tutar</th><th>Açıklama</th><th style="width:60px"></th></tr></thead>
+                <tbody></tbody>
+                <tfoot><tr><td colspan="4">Toplam: <b class="sum">0</b></td></tr></tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="fin-etkinlikler" class="fin-pane hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div style="font-weight:800; opacity:.9;">Etkinlik Bütçeleri</div>
+          <button id="evtAdd" class="fin-add">Etkinlik Ekle</button>
+        </div>
+        <div class="evt-grid" id="evtGrid"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Basit Uygulama Girişi (admin/user) -->
+  <div id="authModal" class="modal">
+    <div class="card" style="width:min(520px,92vw);">
+      <div class="card-head"><div>Giriş Yap</div></div>
+      <div class="card-body">
+        <div class="row"><label>Kullanıcı</label><input id="authUser" class="input" placeholder="admin veya user" /></div>
+        <div class="row"><label>Şifre</label><input id="authPass" class="input" type="password" placeholder="****" /></div>
+        <div class="row"><label>Beni hatırla</label><input id="authRemember" type="checkbox" /></div>
+      </div>
+      <div class="card-foot"><button class="btn primary" id="authSubmit">Giriş Yap</button></div>
+    </div>
+  </div>
+
+  <!-- Etkinlik EKLE modalı -->
+  <div id="addModal" class="modal">
+    <div class="card" style="width:min(520px,92vw);">
+      <div class="card-head"><div>Yeni Etkinlik</div><button class="btn" id="addClose">Kapat</button></div>
+      <div class="card-body">
+        <div class="row"><label>Takvim</label><select id="addCal"></select></div>
+        <div class="row"><label>Başlık</label><input id="addTitle" class="input" placeholder="Etkinlik adı" /></div>
+        <div class="row"><label>Başlangıç</label><input id="addStart" type="datetime-local" class="input"/></div>
+        <div class="row"><label>Bitiş</label><input id="addEnd" type="datetime-local" class="input"/></div>
+        <div class="row"><label>Tüm gün</label><input id="addAllDay" type="checkbox"/></div>
+        <div class="row"><label>Renk</label><select id="addColor"></select></div>
+      </div>
+      <div class="card-foot">
+        <button class="btn" id="addCancel">Vazgeç</button>
+        <button class="btn primary" id="addSave">Kaydet</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Etkinlik BİLGİ / DÜZENLE modalı -->
+  <div id="infoModal" class="modal">
+    <div class="card" style="width:min(520px,92vw);">
+      <div class="card-head"><div>Etkinlik</div><button class="btn" id="infoClose">Kapat</button></div>
+      <div class="card-body" id="infoBody"></div>
+      <div class="card-foot">
+        <button class="btn" id="infoDelete">Sil</button>
+        <div style="flex:1"></div>
+        <button class="btn" id="infoEdit">Düzenle</button>
+        <button class="btn primary" id="infoOk">Kaydet</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAPI & GSI (önce bunlar) -->
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <!-- Uygulama (tek dosya) -->
+  <script src="scripts/app.js?v=20250915"></script>
+</body>
+</html>
+
