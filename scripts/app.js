@@ -407,6 +407,186 @@ function ensureLogoutMenu(){
   menu.style.zIndex = '60';
   menu.style.display = 'none';
   menu.style.overflow = 'hidden';
+  /*****************************************************
+ *  KULLANICI YETKİLERİ MODALI — Admin'e özel panel
+ *  (TAB_ASSIGN kullanır, localStorage’ta saklar)
+ *****************************************************/
+const TAB_LABELS = { home: 'Ana Sayfa', cal: 'Takvim', fin: 'Finans' };
+
+let permsModalEl = null;
+function ensurePermissionsModal() {
+  if (permsModalEl) return permsModalEl;
+
+  const m = document.createElement('div');
+  m.id = 'permsModal';
+  m.className = 'modal';
+  m.style.display = 'none';
+  m.innerHTML = `
+    <div class="card" style="width:min(720px,96vw);">
+      <div class="card-head" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <div>Kullanıcı Yetkileri</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn" id="permsClose">Kapat</button>
+          <button class="btn primary" id="permsSave">Kaydet</button>
+        </div>
+      </div>
+      <div class="card-body" style="gap:10px;">
+        <div class="muted" style="margin-bottom:4px">
+          Bu panelde her kullanıcı için hangi <b>sekmeleri</b> görebileceğini seçebilirsin. 
+          <b>Admin</b> her zaman tüm sekmelere sahiptir ve kapatılamaz.
+        </div>
+
+        <div id="permsTableWrap" style="overflow:auto; border:1px solid var(--border); border-radius:12px;">
+          <table class="fin-table" style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr>
+                <th style="min-width:220px;text-align:left;padding:8px 10px;">Kullanıcı</th>
+                <th style="text-align:center;">${TAB_LABELS.home}</th>
+                <th style="text-align:center;">${TAB_LABELS.cal}</th>
+                <th style="text-align:center;">${TAB_LABELS.fin}</th>
+              </tr>
+            </thead>
+            <tbody id="permsTbody"></tbody>
+          </table>
+        </div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <button class="btn" id="permsGrantAll">Herkese Tüm Sekmeler</button>
+          <button class="btn" id="permsClearAll">Herkesten Tümünü Kaldır (Admin hariç)</button>
+        </div>
+
+        <div class="muted" style="font-size:.85rem;margin-top:4px;">
+          Not: Bu yetkiler <b>tarayıcı yereli (localStorage)</b> düzeyinde saklanır. 
+          Farklı cihazlardaki kullanıcılar için otomatik <i>senkron</i> istersen, 
+          bir sonraki adımda küçük bir backend (Supabase / Cloudflare KV / Firebase) bağlayabiliriz.
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(m);
+
+  // Butonlar
+  m.querySelector('#permsClose').onclick = () => m.style.display = 'none';
+  m.querySelector('#permsSave').onclick  = savePermsFromModal;
+  m.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') m.style.display = 'none'; });
+
+  // Toplu butonlar
+  m.querySelector('#permsGrantAll').onclick = ()=>{
+    const tbody = m.querySelector('#permsTbody');
+    tbody.querySelectorAll('tr').forEach(tr=>{
+      const uname = tr.dataset.user;
+      if (uname === 'admin') return; // admin zaten full
+      tr.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = true);
+    });
+  };
+  m.querySelector('#permsClearAll').onclick = ()=>{
+    const tbody = m.querySelector('#permsTbody');
+    tbody.querySelectorAll('tr').forEach(tr=>{
+      const uname = tr.dataset.user;
+      if (uname === 'admin') return; // admin'i bozma
+      tr.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = false);
+    });
+  };
+
+  permsModalEl = m;
+  return m;
+}
+
+function openPermissionsModal(){
+  if (!isAdmin()) return;      // güvenlik: sadece admin
+  loadTabAssignments();         // mevcut atamayı oku
+  const m = ensurePermissionsModal();
+  renderPermsTable();           // tabloyu doldur
+  m.style.display = 'grid';
+}
+
+function renderPermsTable(){
+  const m = ensurePermissionsModal();
+  const tbody = m.querySelector('#permsTbody');
+  tbody.innerHTML = '';
+
+  // Kullanıcıları ada göre sırala; admin üstte
+  const entries = Object.entries(USER_DISPLAY).sort(([ua,da],[ub,db])=>{
+    if (ua==='admin') return -1;
+    if (ub==='admin') return  1;
+    return (da||'').localeCompare(db||'','tr');
+  });
+
+  entries.forEach(([uname, dname])=>{
+    const tr = document.createElement('tr');
+    tr.dataset.user = uname;
+
+    const tdUser = document.createElement('td');
+    tdUser.style.padding = '8px 10px';
+    tdUser.style.whiteSpace = 'nowrap';
+    tdUser.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="avatar" data-user="${uname}" title="${dname}" 
+             style="width:20px;height:20px;border-radius:9999px;font-size:10px;font-weight:900;display:inline-flex;align-items:center;justify-content:center;background:var(--accent);color:#fff;">
+          ${getInitials(dname)}
+        </div>
+        <div style="font-weight:800">${escapeHtml(dname)}</div>
+        ${uname==='admin' ? `<span class="muted" style="font-size:.85em;">(yönetici)</span>` : ''}
+      </div>
+    `;
+
+    const mkCell = (tabKey)=>{
+      const td = document.createElement('td');
+      td.style.textAlign = 'center';
+      td.style.padding = '6px';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = (TAB_ASSIGN?.[tabKey] || []).includes(uname);
+      if (uname === 'admin') { cb.checked = true; cb.disabled = true; }
+      td.appendChild(cb);
+      return td;
+    };
+
+    tr.appendChild(tdUser);
+    tr.appendChild(mkCell('home'));
+    tr.appendChild(mkCell('cal'));
+    tr.appendChild(mkCell('fin'));
+    tbody.appendChild(tr);
+  });
+
+  // Avatar renklendirme
+  colorize(tbody);
+}
+
+function savePermsFromModal(){
+  const m = ensurePermissionsModal();
+  const tbody = m.querySelector('#permsTbody');
+
+  // Yeni atama yapısını kur
+  const next = { home:['admin'], cal:['admin'], fin:['admin'] };
+
+  tbody.querySelectorAll('tr').forEach(tr=>{
+    const uname = tr.dataset.user;
+    if (!uname || uname === 'admin') return; // admin zaten eklendi
+    const tds = tr.querySelectorAll('td');
+    const homeCb = tds[1]?.querySelector('input[type=checkbox]');
+    const calCb  = tds[2]?.querySelector('input[type=checkbox]');
+    const finCb  = tds[3]?.querySelector('input[type=checkbox]');
+    if (homeCb?.checked) next.home.push(uname);
+    if (calCb ?.checked) next.cal .push(uname);
+    if (finCb ?.checked) next.fin .push(uname);
+  });
+
+  // Tekilleştir
+  Object.keys(next).forEach(k => next[k] = Array.from(new Set(next[k])));
+
+  // Kaydet & uygula
+  TAB_ASSIGN = next;
+  saveTabAssignments();
+  updateTabVisibility();
+
+  // Kapat
+  m.style.display = 'none';
+
+  // Küçük onay
+  try { alert('Yetkiler kaydedildi. Not: Bu ayarlar bu tarayıcıda geçerlidir.'); } catch {}
+}
+
 
   const mkItem = (label, handler, disabled=false) => {
     const it = document.createElement('div');
@@ -421,7 +601,8 @@ function ensureLogoutMenu(){
     it.onclick = () => { if(disabled) return; hideLogoutMenu(); handler(); };
     menu.appendChild(it);
   };
-
+  
+  if (isAdmin()) mkItem('Kullanıcı Yetkileri', openPermissionsModal);
   mkItem('Google hesabından çıkış yap', googleSignOutOnly);
   mkItem('Kullanıcı oturumunu sonlandır', basicSignOutOnly);
 
