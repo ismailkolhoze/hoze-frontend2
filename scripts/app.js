@@ -8,6 +8,30 @@ const { createClient } = window.supabase; // UMD için şart
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /*********************
+ * TODOS: Minimal CRUD
+ *********************/
+async function addTodo(title, createdBy) {
+  const { data, error } = await sb.from('todos').insert([{ title, created_by: createdBy }]).select().single();
+  if (error) { console.error(error); alert('Kaydedilemedi'); return null; }
+  return data;
+}
+async function fetchTodos() {
+  const { data, error } = await sb.from('todos').select('*').order('created_at', { ascending: false });
+  if (error) { console.error(error); alert('Yüklenemedi'); return []; }
+  return data;
+}
+async function updateTodoStatus(id, status) {
+  const { error } = await sb.from('todos').update({ status }).eq('id', id);
+  if (error) { console.error(error); alert('Güncellenemedi'); return false; }
+  return true;
+}
+// Konsoldan kolay erişim
+window.addTodo = addTodo; window.fetchTodos = fetchTodos; window.updateTodoStatus = updateTodoStatus;
+
+// İstanbul saati gösterimi (istersen)
+function fmtTR(iso){ return new Intl.DateTimeFormat('tr-TR',{dateStyle:'medium',timeStyle:'short',timeZone:'Europe/Istanbul'}).format(new Date(iso)); }
+
+/*********************
  *  AYARLAR & GLOBAL
  *********************/
 const CLIENT_ID = '55853861-u5lbmr4l02lsphi39iu1he03b9m30sru.apps.googleusercontent.com';
